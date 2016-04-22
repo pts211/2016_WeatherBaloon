@@ -23,7 +23,7 @@ public:
 
   //Function:  getTemperature()
   //Description:  Performs check on sensor, updates read values. Needs to be called every cycle!
-  //Postconditions:  Reads sensor, returns the temperature.
+  //Postconditions:  Reads sensor, returns the temperature (celsius).
   float getTemp()
   {
     return m_barometer.bmp085GetTemperature(m_barometer.bmp085ReadUT()); //Get the temperature, bmp085ReadUT MUST be called first
@@ -31,7 +31,7 @@ public:
   
   //Function:  getPressure()
   //Description:  Performs check on sensor, updates read values. Needs to be called every cycle!
-  //Postconditions:  Reads sensor, returns the pressure.
+  //Postconditions:  Reads sensor, returns the pressure (kb?).
   float getPressure()
   {
     m_pressure = m_barometer.bmp085GetPressure(m_barometer.bmp085ReadUP());//Get the temperature
@@ -40,7 +40,7 @@ public:
   
   //Function:  getAltitude()
   //Description:  Performs check on sensor, updates read values. Needs to be called every cycle!
-  //Postconditions:  Reads sensor, returns the altitude.
+  //Postconditions:  Reads sensor, returns the altitude (meters).
   float getAltitude()
   {
     return m_barometer.calcAltitude(m_pressure); //Uncompensated calculation - in Meters 
@@ -48,7 +48,7 @@ public:
   
   //Function:  getATM()
   //Description:  Performs check on sensor, updates read values. Needs to be called every cycle!
-  //Postconditions:  Reads sensor, returns the atmospheric pressure.
+  //Postconditions:  Reads sensor, returns the atmospheric pressure (ATM).
   float getATM()
   {
     return m_pressure / 101325;
@@ -59,6 +59,11 @@ public:
   String print()
   {
     return String(getTemp()) + ", " + String(getPressure()) + ", " + String(getAltitude()) + ", " + String(getATM()) + "; ";
+  }
+
+  String printWithLabels()
+  {
+    return String(getTemp()) + " *C, " + String(getPressure()) + " Pa, " + String(getAltitude()) + " m, " + String(getATM()) + " atm";
   }
 };
 

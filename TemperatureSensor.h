@@ -29,13 +29,17 @@ public:
 
   //Function:  getTemperature()
   //Description:  Performs check on sensor, updates read values. Needs to be called every cycle!
-  //Postconditions:  Reads sensor, sets variables accordingly.
+  //Postconditions:  Reads sensor, return the temperature (celsius).
   float getTemp();
 
   //Function:  getPin()
   //Description:  Used for checking which PIN the sensor is on. 
   //Postconditions:  Returns PIN number for sensor. 
   int getPin();
+
+  String print();
+
+  String printWithLabels();
 };
 
 #endif

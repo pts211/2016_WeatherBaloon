@@ -20,3 +20,13 @@ int TemperatureSensor::getPin()
 {
   return m_sensPin;
 }
+
+String TemperatureSensor::print()
+{
+  return String(getTemp());
+}
+
+String TemperatureSensor::printWithLabels()
+{
+  return String(getTemp()) + " *C";
+}

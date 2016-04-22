@@ -4,6 +4,7 @@
 
 #include "TemperatureSensor.h"
 #include "BarometricSensor.h"
+#include "HumiditySensor.h"
 
 //CONSTANTS
 
@@ -13,13 +14,12 @@ String commandBuffer = "";
 String s3_commandBuffer = "";
 
 //VARIABLES
-float temperature;
-float pressure;
-float atm;
-float altitude;
+#define DHTPIN A0     // what pin we're connected to
 
 //INPUTS
-TemperatureSensor tempSensor(0);
+TemperatureSensor tempSensor(A0);
+TemperatureSensor tempSensor02(A4);
+HumiditySensor humidity(A2);
 BarometricSensor barometer;
 
 //
@@ -40,43 +40,24 @@ BarometricSensor barometer;
 void setup()
 {
   Serial.begin(9600);
+  Serial.print("Weather Baloon Monitoring System Initilizing...");
   
+  humidity.init();
   barometer.init();
+
+  Serial.println("done!");
 }
  
 void loop()
 {
-  // temperature = myBarometer.bmp085GetTemperature(myBarometer.bmp085ReadUT()); //Get the temperature, bmp085ReadUT MUST be called first
-   //pressure = myBarometer.bmp085GetPressure(myBarometer.bmp085ReadUP());//Get the temperature
-   //altitude = myBarometer.calcAltitude(pressure); //Uncompensated calculation - in Meters 
-   //atm = pressure / 101325; 
 
-   temperature = barometer.getTemp();
-   pressure = barometer.getPressure();
-   altitude = barometer.getAltitude();
-   atm  = barometer.getATM();
+  //Serial.println(barometer.print());
 
-   Serial.println(barometer.print());
-  /*
-  Serial.print("Temperature: ");
-  Serial.print(temperature, 2); //display 2 decimal places
-  Serial.print("deg C | ");
+  String reading = tempSensor.printWithLabels() + ", " 
+                 + tempSensor02.printWithLabels() + ", " 
+                 + humidity.printWithLabels() + ", " 
+                 + barometer.printWithLabels();
+  Serial.println(reading);
 
-  Serial.print("Pressure: ");
-  Serial.print(pressure, 0); //whole number only.
-  Serial.print(" Pa | ");
-
-  Serial.print("Ralated Atmosphere: ");
-  Serial.print(atm, 4); //display 4 decimal places
-  Serial.print(" | ");
-
-  Serial.print("Altitude: ");
-  Serial.print(altitude, 2); //display 2 decimal places
-  Serial.print(" m | ");
-
-  
-  Serial.print(" tS.temp:" + String(tempSensor.getTemp()) + " ");
-  Serial.println();
-  */
   delay(100);
  }
