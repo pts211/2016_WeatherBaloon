@@ -5,6 +5,8 @@
 #include "TemperatureSensor.h"
 #include "BarometricSensor.h"
 #include "HumiditySensor.h"
+#include "BigRedBee.h"
+#include "OpenLogger.h"
 
 //CONSTANTS
 
@@ -13,10 +15,9 @@ const int BUFFLENGTH = 40;
 String commandBuffer = "";
 String s3_commandBuffer = "";
 
-//VARIABLES
-#define DHTPIN A0     // what pin we're connected to
-
 //INPUTS
+BigRedBee brb(&Serial3);
+OpenLogger L(&Serial1);
 TemperatureSensor tempSensor(A0);
 TemperatureSensor tempSensor02(A4);
 HumiditySensor humidity(A2);
@@ -39,13 +40,15 @@ BarometricSensor barometer;
  
 void setup()
 {
+  L.init();
   Serial.begin(9600);
-  Serial.print("Weather Baloon Monitoring System Initilizing...");
+
+  olog("********************\n");
+  olog("INITILIZING... DONE.\n");
+  olog("********************\n");
   
   humidity.init();
   barometer.init();
-
-  Serial.println("done!");
 }
  
 void loop()
@@ -53,11 +56,28 @@ void loop()
 
   //Serial.println(barometer.print());
 
-  String reading = tempSensor.printWithLabels() + ", " 
-                 + tempSensor02.printWithLabels() + ", " 
-                 + humidity.printWithLabels() + ", " 
-                 + barometer.printWithLabels();
-  Serial.println(reading);
+  //String reading = tempSensor.printWithLabels() + ", " 
+  //               + tempSensor02.printWithLabels() + ", " 
+  //               + humidity.printWithLabels() + ", " 
+  //               + barometer.printWithLabels();
+
+  String reading = tempSensor.print() + ", " 
+                 + tempSensor02.print() + ", " 
+                 + humidity.print() + ", " 
+                 + barometer.print();
+  ologln(reading);
 
   delay(100);
+ }
+
+ void olog(String txt)
+ {
+  Serial.print(txt);
+  L.log(txt);
+ }
+
+ void ologln(String txt)
+ {
+  Serial.println(txt);
+  L.logln(txt);
  }

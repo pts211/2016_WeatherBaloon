@@ -19,27 +19,51 @@ private:
 public:
 
   //TemperatureSensor constructor
-  TemperatureSensor(const int analog_port);
+  TemperatureSensor(const int analog_port)
+  {
+    m_sensPin = analog_port;
+  }
 
   //Function:  init()
   //Description:  initilizes the PIN to be used for sensor.
   //Preconditions:  sensor pin has been set.
   //Postconditions:  The pinMode method is called and sets the sensor to input.
-  void init();
-
+  void init()
+  {
+    analogRead(m_sensPin);
+  }
+  
   //Function:  getTemperature()
   //Description:  Performs check on sensor, updates read values. Needs to be called every cycle!
   //Postconditions:  Reads sensor, return the temperature (celsius).
-  float getTemp();
+  float getTemp()
+  {
+    m_rawVal = analogRead(m_sensPin);
+
+    m_R = 1023.0/((float)m_rawVal) - 1.0;  
+    m_R *= R0;
+    m_tempDegC = 1.0/(log(m_R/R0)/B+1/298.15)-273.15; //convert to temperature via datasheet;
+
+    return m_tempDegC;
+  }
 
   //Function:  getPin()
   //Description:  Used for checking which PIN the sensor is on. 
   //Postconditions:  Returns PIN number for sensor. 
-  int getPin();
+  int getPin()
+  {
+    return m_sensPin;
+  }
 
-  String print();
+  String print()
+  {
+    return String(getTemp());
+  }
 
-  String printWithLabels();
+  String printWithLabels()
+  {
+    return String(getTemp()) + " *C";
+  }
 };
 
 #endif
