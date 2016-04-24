@@ -2,15 +2,21 @@
 #define BAROMETRICSENSOR_H
 
 #include <Arduino.h>
-#include "Barometer.h"
+#include "libraries/Barometer.h"
 
 class BarometricSensor
 {
 private:
   Barometer m_barometer;
+  String m_id;
   float m_pressure;
   
 public:
+
+  BarometricSensor(const String id = "undef")
+  {
+    m_id = id;
+  }
   //Function:  init()
   //Description:  initilizes the PIN to be used for sensor.
   //Preconditions:  sensor pin has been set.
@@ -56,9 +62,16 @@ public:
 
   //Function: print()
   //Description: prints out the sensor data comma delimitted: "temp, pressure, altitude, atm;"
+  String printColHeadings()
+  {
+    return "Temp(" + m_id + ") (C), Pressure (Pa), Altitude (m), ATM (atm)";
+  }
+
+  //Function: print()
+  //Description: prints out the sensor data comma delimitted: "temp, pressure, altitude, atm;"
   String print()
   {
-    return String(getTemp()) + ", " + String(getPressure()) + ", " + String(getAltitude()) + ", " + String(getATM()) + "; ";
+    return String(getTemp()) + ", " + String(getPressure()) + ", " + String(getAltitude()) + ", " + String(getATM());
   }
 
   String printWithLabels()

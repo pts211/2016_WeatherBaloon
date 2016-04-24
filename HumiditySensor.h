@@ -2,7 +2,7 @@
 #define HUMIDITYSENSOR_H
 
 #include <Arduino.h>
-#include "DHT.h"
+#include "libraries/DHT.h"
 
 // Uncomment whatever type you're using!
 //#define DHTTYPE DHT11   // DHT 11 
@@ -15,12 +15,14 @@ private:
   DHT * dht;
   float m_temp;
   float m_humidity;
+  String m_id;
   
 public:
   //HumiditySensor constructor
-  HumiditySensor(const int analog_port)
+  HumiditySensor(const int analog_port, const String id = "undef")
   {
     dht = new DHT(analog_port, DHTTYPE);
+    m_id = id;
   }
 
   //Function:  init()
@@ -48,6 +50,11 @@ public:
   {
     m_humidity = dht->readHumidity();
     return (isnan(m_humidity)) ? 0 : m_humidity;
+  }
+
+  String printColHeadings()
+  {
+    return "Temp(" + m_id + ") (C), Humidity (%)";
   }
 
   //Function: print()

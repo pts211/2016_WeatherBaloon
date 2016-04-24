@@ -10,6 +10,7 @@ private:
   const float R0 = 100000.0;  // R0 = 100k
   
   int m_sensPin;
+  String m_id;
   int m_rawVal; //Storing as a float to save a cast later.
   float m_R;
   float m_tempDegC;
@@ -19,9 +20,10 @@ private:
 public:
 
   //TemperatureSensor constructor
-  TemperatureSensor(const int analog_port)
+  TemperatureSensor(const int analog_port, const String id = "undf")
   {
     m_sensPin = analog_port;
+    m_id = id;
   }
 
   //Function:  init()
@@ -53,6 +55,11 @@ public:
   int getPin()
   {
     return m_sensPin;
+  }
+
+  String printColHeadings()
+  {
+    return "Temp(" + m_id + ") (C)";
   }
 
   String print()

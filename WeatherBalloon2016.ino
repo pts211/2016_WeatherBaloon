@@ -16,12 +16,12 @@ String commandBuffer = "";
 String s3_commandBuffer = "";
 
 //INPUTS
-BigRedBee brb(&Serial3);
-OpenLogger L(&Serial1);
-TemperatureSensor tempSensor(A0);
-TemperatureSensor tempSensor02(A4);
-HumiditySensor humidity(A2);
-BarometricSensor barometer;
+BigRedBee brb(&Serial2);
+OpenLogger L(&Serial3);
+TemperatureSensor tempSensor(A0, "Inside");
+TemperatureSensor tempSensor02(A4, "Outside");
+HumiditySensor humidity(A2, "Humidity");
+BarometricSensor barometer("Pressure");
 
 //
 
@@ -40,6 +40,7 @@ BarometricSensor barometer;
  
 void setup()
 {
+  brb.init();
   L.init();
   Serial.begin(9600);
 
@@ -49,10 +50,27 @@ void setup()
   
   humidity.init();
   barometer.init();
+  /*
+  String headings = tempSensor.printColHeadings() + ", " 
+                  + tempSensor02.printColHeadings() + ", " 
+                  + humidity.printColHeadings() + ", " 
+                  + barometer.printColHeadings();
+  ologln(headings);
+  */
+
+  ologln(brb.printColHeadings());
 }
  
 void loop()
 {
+
+  brb.poll();
+
+  brb.print();
+  
+  //if( brb.read() ){
+    //ologln( brb.print() );
+  //}
 
   //Serial.println(barometer.print());
 
@@ -65,9 +83,9 @@ void loop()
                  + tempSensor02.print() + ", " 
                  + humidity.print() + ", " 
                  + barometer.print();
-  ologln(reading);
+  //ologln(reading);
 
-  delay(100);
+  delay(500);
  }
 
  void olog(String txt)
