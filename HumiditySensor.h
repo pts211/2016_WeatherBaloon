@@ -2,7 +2,8 @@
 #define HUMIDITYSENSOR_H
 
 #include <Arduino.h>
-#include "libraries/DHT.h"
+//#include "libraries/DHT.h"
+#include "DHT.h"
 
 // Uncomment whatever type you're using!
 //#define DHTTYPE DHT11   // DHT 11 

@@ -7,6 +7,8 @@
 class BigRedBee
 {
 private:
+  const int BUFFLENGTH = 80;
+
   TinyGPSPlus gps;
   HardwareSerial * m_serial;
   int m_baud;
@@ -15,6 +17,9 @@ private:
   bool m_readInProgress;
   String m_gpsString;
   String m_tempStr;
+
+  String m_commandBuffer;
+  String m_completeStr;
 
 public:
 
@@ -41,15 +46,38 @@ public:
     }
   }
 
+  void pollOld()
+  {
+    Serial.println("PRINTING OLD BRB");
+    int buffCntr = 0;
+    boolean isListen = true;
+    while(m_serial->available() && buffCntr<BUFFLENGTH && isListen){
+      char input = m_serial->read();
+      if(input == '*'){
+        isListen = false;
+        m_completeStr = m_commandBuffer;
+        m_commandBuffer = "";
+      }
+      if(isListen && (input != '\r')){  //ignore the return character
+        m_commandBuffer.concat(input);
+        buffCntr++;
+      }
+    }
+  }
+
+  String printOld()
+  {
+    return m_completeStr;
+  }
+
   String printColHeadings()
   {
-    return "Time, Latitude, Longitude";
+    return "Time, Latitude, Longitude, Speed (mph), Altitude (m)";
   }
 
   String print()
   {
-    return printTime() + ", " + printLocation();
-    //return "test";
+    return printTime() + ", " + printLocation() + ", " + printDetails();
   }
 
   String printLocation()
@@ -67,6 +95,7 @@ public:
     {
       locStr = "INVALID";
     }
+    return locStr;
   }
   
   String printTime()
@@ -89,10 +118,26 @@ public:
     }
     else
     {
-      Serial.print(F("INVALID"));
+      timeStr = "INVALID";
     }
+    return timeStr;
   }
-  
+
+  String printDetails()
+  {
+    String otherStr = "";
+    if(gps.speed.isValid()){
+      otherStr += gps.speed.mph();
+    }
+    otherStr += ", ";
+    
+    if(gps.altitude.isValid()){
+      otherStr += gps.altitude.meters();
+    }
+
+    return otherStr;
+  }
+    
   void displayInfo()
   {
     Serial.print(F("Location: ")); 

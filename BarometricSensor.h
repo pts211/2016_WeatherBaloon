@@ -2,7 +2,8 @@
 #define BAROMETRICSENSOR_H
 
 #include <Arduino.h>
-#include "libraries/Barometer.h"
+//#include "libraries/Barometer.h"
+#include "Barometer.h"
 
 class BarometricSensor
 {
