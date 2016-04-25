@@ -35,7 +35,7 @@ public:
 
   bool poll()
   {
-    Serial.println("********** PRINTING OUT FROM THE POLL METHOD! **********");
+    //Serial.println("********** PRINTING OUT FROM THE POLL METHOD! **********");
     int buffCntr = 0;
     boolean isListen = true;
     while(m_serial->available() && buffCntr<BUFFLENGTH && isListen){

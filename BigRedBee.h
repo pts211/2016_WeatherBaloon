@@ -77,7 +77,8 @@ public:
 
   String print()
   {
-    return printTime() + ", " + printLocation() + ", " + printDetails();
+    return printTime() + ", " + printLocation();
+    //return printTime() + ", " + printLocation() + ", " + printDetails();
   }
 
   String printLocation()

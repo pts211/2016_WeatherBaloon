@@ -9,6 +9,33 @@
 #include "BigRedBee.h"
 #include "GeigerCounter.h"
 #include "OpenLogger.h"
+#include <avr/pgmspace.h>
+ 
+int freeRam () {
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+}
+ 
+void StreamPrint_progmem(Print &out,PGM_P format,...)
+{
+  // program memory version of printf - copy of format string and result share a buffer
+  // so as to avoid too much memory use
+  char formatString[128], *ptr;
+  strncpy_P( formatString, format, sizeof(formatString) ); // copy in from program mem
+  // null terminate - leave last char since we might need it in worst case for result's \0
+  formatString[ sizeof(formatString)-2 ]='\0'; 
+  ptr=&formatString[ strlen(formatString)+1 ]; // our result buffer...
+  va_list args;
+  va_start (args,format);
+  vsnprintf(ptr, sizeof(formatString)-1-strlen(formatString), formatString, args );
+  va_end (args);
+  formatString[ sizeof(formatString)-1 ]='\0'; 
+  out.print(ptr);
+}
+#define Serialprint(format, ...) StreamPrint_progmem(Serial,PSTR(format),##__VA_ARGS__)
+#define Streamprint(stream,format, ...) StreamPrint_progmem(stream,PSTR(format),##__VA_ARGS__)
+ 
 
 //CONSTANTS
 
@@ -33,18 +60,17 @@ BarometricSensor barometer("Pressure");
 /********************************************************************************************************************************************/
 //Start of Configuration
 
-
+uint8_t * heapptr, * stackptr;
 
 //End of Configuration
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
-
  
 void setup()
 {
   //geiger.init();
-  //brb.init();
+  brb.init();
   //L.init();
   Serial.begin(9600);
 
@@ -68,20 +94,24 @@ void setup()
  
 void loop()
 {
+  //check_mem();
+  /*
+  Serial.print("heap_size: ");
+  Serial.print(*(heapptr));
+  Serial.print(" stack_size: ");
+  Serial.println(*(stackptr));
+  */
+  //geiger.poll();
   //ologln(geiger.print());
+  
+  
+  
   //geiger.print();
 
-  //Serial.print(" freeRAM()=");
-  //Serial.println(freeRam());
+  //Serialprint(" freeRAM()= %d - main loop\n", freeRam());
 
-  brb.pollOld();
-  ologln(brb.printOld());
-  //brb.displayInfo();
-  
-  //if( brb.read() ){
-    //ologln( brb.print() );
-  //}
-
+  //brb.poll();
+  //Serial.println(brb.print());
   //Serial.println(barometer.print());
 
   //String reading = tempSensor.printWithLabels() + ", " 
@@ -95,21 +125,9 @@ void loop()
   //               + barometer.print();
   //ologln(reading);
 
-  delay(1000);
+  //delay(5);
  }
-
-
- void serialEvent2(){
-  brb.pollOld();
- }
-
-
-int freeRam () {
-  extern int __heap_start, *__brkval; 
-  int v; 
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
-}
-
+ 
  void olog(String txt)
  {
   Serial.print(txt);
@@ -118,6 +136,6 @@ int freeRam () {
 
  void ologln(String txt)
  {
-  Serial.println(txt);
+  //Serial.println(txt);
   L.logln(txt);
  }
