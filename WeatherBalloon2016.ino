@@ -1,14 +1,12 @@
 #include <Arduino.h>
 #include <stdlib.h>
 #include <Wire.h>
-#include <MemoryFree.h>
 
 #include "TemperatureSensor.h"
 #include "BarometricSensor.h"
 #include "HumiditySensor.h"
-#include "BigRedBee.h"
+#include "VoltageSensor.h"
 #include "GeigerCounter.h"
-#include "OpenLogger.h"
 #include <avr/pgmspace.h>
  
 int freeRam () {
@@ -35,32 +33,28 @@ void StreamPrint_progmem(Print &out,PGM_P format,...)
 }
 #define Serialprint(format, ...) StreamPrint_progmem(Serial,PSTR(format),##__VA_ARGS__)
 #define Streamprint(stream,format, ...) StreamPrint_progmem(stream,PSTR(format),##__VA_ARGS__)
- 
 
-//CONSTANTS
 
-//SERIAL
-const int BUFFLENGTH = 40;
-String commandBuffer = "";
-String s3_commandBuffer = "";
-
-//INPUTS
+//DEVICES
+HardwareSerial *openLog = &Serial1;
 GeigerCounter geiger(&Serial3);
-BigRedBee brb(&Serial2);
-OpenLogger L(&Serial1);
 TemperatureSensor tempSensor(A0, "Inside");
 TemperatureSensor tempSensor02(A4, "Outside");
 HumiditySensor humidity(A2, "Humidity");
 BarometricSensor barometer("Pressure");
+VoltageSensor vsBatt(A6, "Battery");
+VoltageSensor vsLemons(A7, "Lemons");
 
-//
+unsigned int currentMillis = 0;
+unsigned int previousMillis = 0;
+unsigned int tick_count = 0;
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 //Start of Configuration
 
-uint8_t * heapptr, * stackptr;
+const unsigned int TICK_INTERVAL = 5000;
 
 //End of Configuration
 /********************************************************************************************************************************************/
@@ -69,73 +63,87 @@ uint8_t * heapptr, * stackptr;
  
 void setup()
 {
-  //geiger.init();
-  brb.init();
-  //L.init();
   Serial.begin(9600);
-
-  olog("********************\n");
-  olog("INITILIZING... DONE.\n");
-  olog("********************\n");
+  openLog->begin(9600);
   
-  //humidity.init();
-  //barometer.init();
-  /*
-  String headings = tempSensor.printColHeadings() + ", " 
-                  + tempSensor02.printColHeadings() + ", " 
-                  + humidity.printColHeadings() + ", " 
-                  + barometer.printColHeadings();
-  ologln(headings);
-  */
+  geiger.init();
+  humidity.init();
+  barometer.init();
+  vsBatt.init();
+  vsLemons.init();
 
-  //ologln(brb.printColHeadings());
-  ologln(geiger.printColHeadings());
+  tempSensor.printColHeadings(openLog, true);
+  tempSensor02.printColHeadings(openLog, true);
+  humidity.printColHeadings(openLog, true);
+  barometer.printColHeadings(openLog, true);
+  vsBatt.printColHeadings(openLog, true);
+  vsLemons.printColHeadings(openLog, true);
+  geiger.printColHeadings(openLog);
 }
  
 void loop()
 {
-  //check_mem();
-  /*
-  Serial.print("heap_size: ");
-  Serial.print(*(heapptr));
-  Serial.print(" stack_size: ");
-  Serial.println(*(stackptr));
-  */
-  //geiger.poll();
-  //ologln(geiger.print());
-  
-  
-  
-  //geiger.print();
+  geiger.poll();
+  vsBatt.poll();
+  vsLemons.poll();
 
-  //Serialprint(" freeRAM()= %d - main loop\n", freeRam());
-
-  //brb.poll();
-  //Serial.println(brb.print());
-  //Serial.println(barometer.print());
-
-  //String reading = tempSensor.printWithLabels() + ", " 
-  //               + tempSensor02.printWithLabels() + ", " 
-  //               + humidity.printWithLabels() + ", " 
-  //               + barometer.printWithLabels();
-
-  //String reading = tempSensor.print() + ", " 
-  //               + tempSensor02.print() + ", " 
-  //               + humidity.print() + ", " 
-  //               + barometer.print();
-  //ologln(reading);
-
-  //delay(5);
+  currentMillis = millis();
+  if(currentMillis - previousMillis > TICK_INTERVAL)
+  {
+    Serial.print(F("Tick: "));
+    Serial.print(tick_count++);
+    Serial.print(F(", Runtime: "));
+    Serial.print(getRuntime());
+    Serial.print(F(", "));
+    tempSensor.printWithLabels(&Serial, true);
+    tempSensor02.printWithLabels(&Serial, true);
+    humidity.printWithLabels(&Serial, true);
+    barometer.printWithLabels(&Serial, true);
+    vsBatt.printWithLabels(&Serial, true);
+    vsLemons.printWithLabels(&Serial, true);
+    geiger.print(&Serial);
+    
+    /*
+    openLog->print(F("Tick: "));
+    openLog->print(tick_count++);
+    openLog->print(F(", Runtime: "));
+    openLog->print(getRuntime());
+    openLog->print(F(", "));
+    tempSensor.printWithLabels(openLog, true);
+    tempSensor02.printWithLabels(openLog, true);
+    humidity.printWithLabels(openLog, true);
+    barometer.printWithLabels(openLog, true);
+    vsBatt.printWithLabels(openLog, true);
+    vsLemons.printWithLabels(openLog, true);
+    geiger.print(openLog);
+    */
+    /*
+    openLog->print(F("Tick: "));
+    openLog->print(tick_count++);
+    openLog->print(F(", Runtime: "));
+    openLog->print(getRuntime());
+    openLog->print(F(", "));
+    tempSensor.print(openLog, true);
+    tempSensor02.print(openLog, true);
+    humidity.print(openLog, true);
+    barometer.print(openLog, true);
+    vsBatt.print(openLog, true);
+    vsLemons.print(openLog, true);
+    geiger.print(openLog);
+    */
+    previousMillis = currentMillis;
+  }
  }
- 
- void olog(String txt)
- {
-  Serial.print(txt);
-  L.log(txt);
- }
 
- void ologln(String txt)
- {
-  //Serial.println(txt);
-  L.logln(txt);
- }
+ String getRuntime()
+{
+  unsigned long t = millis()/1000;
+  static char str[12];
+  long h = t / 3600;
+  t = t % 3600;
+  int m = t / 60;
+  int s = t % 60;
+  sprintf(str, "%04ld:%02d:%02d", h, m, s);
+  return String(str);
+}
+

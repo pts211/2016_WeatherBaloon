@@ -19,7 +19,8 @@ public:
   //GeigerCounter constructor
   GeigerCounter(HardwareSerial * s, const int baud = 9600)
   {
-    //m_commandBuffer.reserve(BUFFLENGTH);
+    m_commandBuffer.reserve(BUFFLENGTH);
+    m_completeStr.reserve(BUFFLENGTH);
     
     m_serial = s;
     m_baud = baud;
@@ -51,16 +52,21 @@ public:
       }
     }
   }
-
-  String printColHeadings()
+  
+  void printColHeadings(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    return "CPS, CPS_C, CPM, CPM_C, uSvHr, uSvHr_c, Speed";
+    s->print(F("CPS, CPS_C, CPM, CPM_C, uSvHr, uSvHr_c, Speed"));
+    if(includeDelimiter){
+      s->print(F(", "));
+    }
   }
-
-  String print()
+  
+  void print(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    //Serial.print(m_completeStr);
-    return m_completeStr;
+    s->print(m_completeStr);
+    if(includeDelimiter){
+      s->print(F(", "));
+    }
   }
 };
 

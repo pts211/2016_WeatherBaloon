@@ -61,23 +61,44 @@ public:
     return m_pressure / 101325;
   }
 
-  //Function: print()
-  //Description: prints out the sensor data comma delimitted: "temp, pressure, altitude, atm;"
-  String printColHeadings()
+  
+  void printColHeadings(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    return "Temp(" + m_id + ") (C), Pressure (Pa), Altitude (m), ATM (atm)";
+    s->print(F("Temp( "));
+    s->print(m_id);
+    s->print(F(") (C), Pressure (Pa), Altitude (m), ATM (atm)"));
+    if(includeDelimiter){
+      s->print(F(", "));
+    }
   }
-
-  //Function: print()
-  //Description: prints out the sensor data comma delimitted: "temp, pressure, altitude, atm;"
-  String print()
+  
+  void print(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    return String(getTemp()) + ", " + String(getPressure()) + ", " + String(getAltitude()) + ", " + String(getATM());
+    s->print(getTemp());
+    s->print(F(", "));
+    s->print(getPressure());
+    s->print(F(", "));
+    s->print(getAltitude());
+    s->print(F(", "));
+    s->print(getATM());
+    if(includeDelimiter){
+      s->print(F(", "));
+    }
   }
-
-  String printWithLabels()
+  
+  void printWithLabels(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    return String(getTemp()) + " *C, " + String(getPressure()) + " Pa, " + String(getAltitude()) + " m, " + String(getATM()) + " atm";
+    s->print(getTemp());
+    s->print(F(" *C, "));
+    s->print(getPressure());
+    s->print(F(" Pa, "));
+    s->print(getAltitude());
+    s->print(F(" m, "));
+    s->print(getATM());
+    s->print(F(" atm"));
+    if(includeDelimiter){
+      s->print(F(", "));
+    }
   }
 };
 

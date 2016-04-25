@@ -1,24 +1,27 @@
-#ifndef TEMPERATURESENSOR_H
-#define TEMPERATURESENSOR_H
+#ifndef VOLTAGESENSOR_H
+#define VOLTAGESENSOR_H
 
 #include <Arduino.h>
 
-class TemperatureSensor
+class VoltageSensor
 {
 private:
-  const int B = 4275; // B value of the thermistor
-  const float R0 = 100000.0;  // R0 = 100k
+  const int AVERAGE_SAMPLES = 20;
+  
+  const float ANALOG_MAX = 1023.0;
+  const float VOLTAGE_MAX = 5.0;
   
   int m_sensPin;
   String m_id;
-  int m_rawVal; //Storing as a float to save a cast later.
-  float m_R;
-  float m_tempDegC;
+  
+  float m_Vraw;
+  float m_Vavg;
+
 
 public:
 
-  //TemperatureSensor constructor
-  TemperatureSensor(const int analog_port, const String id = "undf")
+  //VoltageSensor constructor
+  VoltageSensor(const int analog_port, const String id = "undf")
   {
     m_sensPin = analog_port;
     m_id = id;
@@ -33,18 +36,28 @@ public:
     analogRead(m_sensPin);
   }
   
+  //Function: poll()
+  //Description: updates the rolling average of the voltage over so many AVERAGE_SAMPLES.
+  void poll()
+  {
+    m_Vraw = (float)analogRead(m_sensPin) * (VOLTAGE_MAX / ANALOG_MAX); 
+    
+    m_Vavg -= m_Vavg / (float)AVERAGE_SAMPLES;
+    m_Vavg += m_Vraw / (float)AVERAGE_SAMPLES;
+  }
+  
   //Function:  getTemperature()
   //Description:  Performs check on sensor, updates read values. Needs to be called every cycle!
   //Postconditions:  Reads sensor, return the temperature (celsius).
-  float getTemp()
+  float getRawVoltage()
   {
-    m_rawVal = analogRead(m_sensPin);
+    return m_Vraw;
+  }
+  
+  float getAverageVoltage()
+  {
 
-    m_R = 1023.0/((float)m_rawVal) - 1.0;  
-    m_R *= R0;
-    m_tempDegC = 1.0/(log(m_R/R0)/B+1/298.15)-273.15; //convert to temperature via datasheet;
-
-    return m_tempDegC;
+    return m_Vavg;
   }
 
   //Function:  getPin()
@@ -57,9 +70,11 @@ public:
   
   void printColHeadings(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    s->print(F("Temp( "));
+    s->print(F("Voltage("));
     s->print(m_id);
-    s->print(F(") (C)"));
+    s->print(F(") (V), Avg Voltage("));
+    s->print(m_id);
+    s->print(F(") (V)"));
     if(includeDelimiter){
       s->print(F(", "));
     }
@@ -67,7 +82,9 @@ public:
   
   void print(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    s->print(getTemp());
+    s->print(m_Vraw);
+    s->print(F(", "));
+    s->print(m_Vavg);
     if(includeDelimiter){
       s->print(F(", "));
     }
@@ -75,8 +92,10 @@ public:
   
   void printWithLabels(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    s->print(getTemp());
-    s->print(F(" *C, "));
+    s->print(m_Vraw);
+    s->print(F("V, "));
+    s->print(m_Vavg);
+    s->print(F("V"));
     if(includeDelimiter){
       s->print(F(", "));
     }

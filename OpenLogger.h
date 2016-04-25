@@ -22,6 +22,11 @@ public:
   {
     m_serial->begin(m_baud);
   }
+  
+  HardwareSerial* getSerial()
+  {
+    return m_serial;
+  }
 
   void log(const String txt)
   {

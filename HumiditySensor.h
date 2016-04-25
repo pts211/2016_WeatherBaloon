@@ -52,23 +52,38 @@ public:
     m_humidity = dht->readHumidity();
     return (isnan(m_humidity)) ? 0 : m_humidity;
   }
-
-  String printColHeadings()
+  
+  void printColHeadings(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    return "Temp(" + m_id + ") (C), Humidity (%)";
+    s->print(F("Temp( "));
+    s->print(m_id);
+    s->print(F(") (C), Humidity (%)"));
+    if(includeDelimiter){
+      s->print(F(", "));
+    }
   }
-
-  //Function: print()
-  //Description: prints out the sensor data comma delimitted: "temp, pressure, altitude, atm;"
-  String print()
+  
+  void print(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    return String(getTemp()) + ", " + String(getHumidity());
+    s->print(getTemp());
+    s->print(F(", "));
+    s->print(getHumidity());
+    if(includeDelimiter){
+      s->print(F(", "));
+    }
   }
-
-  String printWithLabels()
+  
+  void printWithLabels(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    return String(getTemp()) + " *C, " + String(getHumidity()) + " %";
+    s->print(getTemp());
+    s->print(F(" *C, "));
+    s->print(getHumidity());
+    s->print(F(" %"));
+    if(includeDelimiter){
+      s->print(F(", "));
+    }
   }
+  
 };
 
 #endif
