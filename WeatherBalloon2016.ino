@@ -8,34 +8,44 @@
 #include "VoltageSensor.h"
 #include "GeigerCounter.h"
 #include <avr/pgmspace.h>
- 
-int freeRam () {
-  extern int __heap_start, *__brkval;
-  int v;
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
-}
- 
-void StreamPrint_progmem(Print &out,PGM_P format,...)
-{
-  // program memory version of printf - copy of format string and result share a buffer
-  // so as to avoid too much memory use
-  char formatString[128], *ptr;
-  strncpy_P( formatString, format, sizeof(formatString) ); // copy in from program mem
-  // null terminate - leave last char since we might need it in worst case for result's \0
-  formatString[ sizeof(formatString)-2 ]='\0'; 
-  ptr=&formatString[ strlen(formatString)+1 ]; // our result buffer...
-  va_list args;
-  va_start (args,format);
-  vsnprintf(ptr, sizeof(formatString)-1-strlen(formatString), formatString, args );
-  va_end (args);
-  formatString[ sizeof(formatString)-1 ]='\0'; 
-  out.print(ptr);
-}
-#define Serialprint(format, ...) StreamPrint_progmem(Serial,PSTR(format),##__VA_ARGS__)
-#define Streamprint(stream,format, ...) StreamPrint_progmem(stream,PSTR(format),##__VA_ARGS__)
 
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+//Start of Configuration
 
+/* TODO Recommend setting FLIGHT_MODE to true for launch.
+ *      This will disable the printing that happens to the regular serial port 
+ *      in hopes of avoiding potential problems, reducing the Arduino's load, etc.
+ */
+#define FLIGHT_MODE false
+#define GPS_CONN_ENABLED false
+
+/* Tick Interval
+ *  The arduino will log data every tick, set in ms.
+ */
+#define TICK_INTERVAL 5000
+
+/* Battery Voltage Monitor - Resistor Values
+ *  The resistor values used for our voltage divider calcuation of
+ *  the supply batteries power.
+ */
+#define R1 21770
+#define R2 9800
+
+//End of Configuration
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+#if GPS_CONN_ENABLED
+#include "BigRedBee.h"
+#endif
+
+ 
 //DEVICES
+#if GPS_CONN_ENABLED
+  BigRedBee brb(&Serial2);
+#endif
 HardwareSerial *openLog = &Serial1;
 GeigerCounter geiger(&Serial3);
 TemperatureSensor tempSensor(A0, "Inside");
@@ -49,32 +59,27 @@ unsigned int currentMillis = 0;
 unsigned int previousMillis = 0;
 unsigned int tick_count = 0;
 
-/********************************************************************************************************************************************/
-/********************************************************************************************************************************************/
-/********************************************************************************************************************************************/
-//Start of Configuration
-
-const unsigned int TICK_INTERVAL = 5000;
-
-//End of Configuration
-/********************************************************************************************************************************************/
-/********************************************************************************************************************************************/
-/********************************************************************************************************************************************/
- 
 void setup()
 {
   Serial.begin(9600);
   openLog->begin(9600);
   
+  #if GPS_CONN_ENABLED
+    brb.init();
+  #endif
   geiger.init();
   humidity.init();
   barometer.init();
   vsBatt.init();
   vsLemons.init();
 
-  vsBatt.setResistors(21770, 9800);
+  vsBatt.setResistors(R1, R2);
 
+  #if !FLIGHT_MODE
   Serial.print(F("Tick, Runtime, "));
+  #if GPS_CONN_ENABLED
+    brb.printColHeadings(openLog, true);
+  #endif
   tempSensor.printColHeadings(&Serial, true);
   tempSensor02.printColHeadings(&Serial, true);
   humidity.printColHeadings(&Serial, true);
@@ -83,8 +88,12 @@ void setup()
   vsLemons.printColHeadings(&Serial, true);
   geiger.printColHeadings(&Serial);
   Serial.println();
+  #endif
   
   openLog->print(F("Tick, Runtime, "));
+  #if GPS_CONN_ENABLED
+    brb.printColHeadings(openLog, true);
+  #endif
   tempSensor.printColHeadings(openLog, true);
   tempSensor02.printColHeadings(openLog, true);
   humidity.printColHeadings(openLog, true);
@@ -100,15 +109,22 @@ void loop()
   geiger.poll();
   vsBatt.poll();
   vsLemons.poll();
+  #if GPS_CONN_ENABLED
+    brb.poll();
+  #endif
 
   currentMillis = millis();
   if(currentMillis - previousMillis > TICK_INTERVAL)
   {
-    
+    // ---------- USB SERIAL OUTPUT ----------
+    #if !FLIGHT_MODE
     Serial.print(tick_count);
     Serial.print(F(", "));
     Serial.print(getRuntime());
     Serial.print(F(", "));
+    #if GPS_CONN_ENABLED
+      brb.print(&Serial, true);
+    #endif
     tempSensor.printWithLabels(&Serial, true);
     tempSensor02.printWithLabels(&Serial, true);
     humidity.printWithLabels(&Serial, true);
@@ -117,27 +133,17 @@ void loop()
     vsLemons.printWithLabels(&Serial, true);
     geiger.print(&Serial);
     Serial.println();
-    
-    /*
-    openLog->print(F("Tick: "));
-    openLog->print(tick_count++);
-    openLog->print(F(", Runtime: "));
-    openLog->print(getRuntime());
-    openLog->print(F(", "));
-    tempSensor.printWithLabels(openLog, true);
-    tempSensor02.printWithLabels(openLog, true);
-    humidity.printWithLabels(openLog, true);
-    barometer.printWithLabels(openLog, true);
-    vsBatt.printWithLabels(openLog, true);
-    vsLemons.printWithLabels(openLog, true);
-    geiger.print(openLog);
-    */
-    
-    
+    #endif
+
+
+    // ---------- OPEN LOG OUTPUT ----------
     openLog->print(tick_count++);
     openLog->print(F(", "));
     openLog->print(getRuntime());
     openLog->print(F(", "));
+    #if GPS_CONN_ENABLED
+      brb.print(openLog, true);
+    #endif
     tempSensor.print(openLog, true);
     tempSensor02.print(openLog, true);
     humidity.print(openLog, true);
@@ -152,7 +158,7 @@ void loop()
   }
  }
 
- String getRuntime()
+String getRuntime()
 {
   unsigned long t = millis()/1000;
   static char str[12];
