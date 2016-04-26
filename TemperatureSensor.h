@@ -13,7 +13,7 @@ private:
   String m_id;
   int m_rawVal; //Storing as a float to save a cast later.
   float m_R;
-  float m_tempDegC;
+  float m_tempDegF;
 
 public:
 
@@ -42,9 +42,10 @@ public:
 
     m_R = 1023.0/((float)m_rawVal) - 1.0;  
     m_R *= R0;
-    m_tempDegC = 1.0/(log(m_R/R0)/B+1/298.15)-273.15; //convert to temperature via datasheet;
-
-    return m_tempDegC;
+    m_tempDegF = 1.0/(log(m_R/R0)/B+1/298.15)-273.15; //convert to temperature via datasheet; Celsius
+    m_tempDegF = (m_tempDegF * 9.0) / 5.0 + 32; //Farenheit
+    
+    return m_tempDegF;
   }
 
   //Function:  getPin()
@@ -57,9 +58,9 @@ public:
   
   void printColHeadings(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    s->print(F("Temp( "));
+    s->print(F("Temp("));
     s->print(m_id);
-    s->print(F(") (C)"));
+    s->print(F(") (F)"));
     if(includeDelimiter){
       s->print(F(", "));
     }
@@ -76,7 +77,7 @@ public:
   void printWithLabels(HardwareSerial * s, const bool includeDelimiter = false)
   {
     s->print(getTemp());
-    s->print(F(" *C, "));
+    s->print(F(" *F, "));
     if(includeDelimiter){
       s->print(F(", "));
     }

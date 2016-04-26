@@ -33,7 +33,8 @@ public:
   //Postconditions:  Reads sensor, returns the temperature (celsius).
   float getTemp()
   {
-    return m_barometer.bmp085GetTemperature(m_barometer.bmp085ReadUT()); //Get the temperature, bmp085ReadUT MUST be called first
+    float temp = m_barometer.bmp085GetTemperature(m_barometer.bmp085ReadUT());
+    return ((temp * 9.0) / 5.0 + 32); //Farenheit //Get the temperature, bmp085ReadUT MUST be called first
   }
   
   //Function:  getPressure()
@@ -64,9 +65,9 @@ public:
   
   void printColHeadings(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    s->print(F("Temp( "));
+    s->print(F("Temp("));
     s->print(m_id);
-    s->print(F(") (C), Pressure (Pa), Altitude (m), ATM (atm)"));
+    s->print(F(") (F), Pressure (Pa), Altitude (m), ATM (atm)"));
     if(includeDelimiter){
       s->print(F(", "));
     }
@@ -89,7 +90,7 @@ public:
   void printWithLabels(HardwareSerial * s, const bool includeDelimiter = false)
   {
     s->print(getTemp());
-    s->print(F(" *C, "));
+    s->print(F(" *F, "));
     s->print(getPressure());
     s->print(F(" Pa, "));
     s->print(getAltitude());

@@ -17,6 +17,9 @@ private:
   float m_Vraw;
   float m_Vavg;
 
+  int m_R1 = 0;
+  int m_R2 = 1;
+
 
 public:
 
@@ -35,12 +38,18 @@ public:
   {
     analogRead(m_sensPin);
   }
+
+  void setResistors(const int r1, const int r2)
+  {
+    m_R1 = r1;
+    m_R2 = r2;
+  }
   
   //Function: poll()
   //Description: updates the rolling average of the voltage over so many AVERAGE_SAMPLES.
   void poll()
   {
-    m_Vraw = (float)analogRead(m_sensPin) * (VOLTAGE_MAX / ANALOG_MAX); 
+    m_Vraw = (float)(analogRead(m_sensPin) * (VOLTAGE_MAX / ANALOG_MAX)) * ((float)(m_R1 + m_R2)/(float)m_R2); 
     
     m_Vavg -= m_Vavg / (float)AVERAGE_SAMPLES;
     m_Vavg += m_Vraw / (float)AVERAGE_SAMPLES;

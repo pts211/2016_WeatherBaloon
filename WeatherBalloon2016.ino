@@ -42,8 +42,8 @@ TemperatureSensor tempSensor(A0, "Inside");
 TemperatureSensor tempSensor02(A4, "Outside");
 HumiditySensor humidity(A2, "Humidity");
 BarometricSensor barometer("Pressure");
-VoltageSensor vsBatt(A6, "Battery");
-VoltageSensor vsLemons(A7, "Lemons");
+VoltageSensor vsBatt(A14, "Battery");
+VoltageSensor vsLemons(A15, "Lemons");
 
 unsigned int currentMillis = 0;
 unsigned int previousMillis = 0;
@@ -72,6 +72,19 @@ void setup()
   vsBatt.init();
   vsLemons.init();
 
+  vsBatt.setResistors(21770, 9800);
+
+  Serial.print(F("Tick, Runtime, "));
+  tempSensor.printColHeadings(&Serial, true);
+  tempSensor02.printColHeadings(&Serial, true);
+  humidity.printColHeadings(&Serial, true);
+  barometer.printColHeadings(&Serial, true);
+  vsBatt.printColHeadings(&Serial, true);
+  vsLemons.printColHeadings(&Serial, true);
+  geiger.printColHeadings(&Serial);
+  Serial.println();
+  
+  openLog->print(F("Tick, Runtime, "));
   tempSensor.printColHeadings(openLog, true);
   tempSensor02.printColHeadings(openLog, true);
   humidity.printColHeadings(openLog, true);
@@ -79,6 +92,7 @@ void setup()
   vsBatt.printColHeadings(openLog, true);
   vsLemons.printColHeadings(openLog, true);
   geiger.printColHeadings(openLog);
+  openLog->println();
 }
  
 void loop()
@@ -90,9 +104,9 @@ void loop()
   currentMillis = millis();
   if(currentMillis - previousMillis > TICK_INTERVAL)
   {
-    Serial.print(F("Tick: "));
-    Serial.print(tick_count++);
-    Serial.print(F(", Runtime: "));
+    
+    Serial.print(tick_count);
+    Serial.print(F(", "));
     Serial.print(getRuntime());
     Serial.print(F(", "));
     tempSensor.printWithLabels(&Serial, true);
@@ -102,6 +116,7 @@ void loop()
     vsBatt.printWithLabels(&Serial, true);
     vsLemons.printWithLabels(&Serial, true);
     geiger.print(&Serial);
+    Serial.println();
     
     /*
     openLog->print(F("Tick: "));
@@ -117,10 +132,10 @@ void loop()
     vsLemons.printWithLabels(openLog, true);
     geiger.print(openLog);
     */
-    /*
-    openLog->print(F("Tick: "));
+    
+    
     openLog->print(tick_count++);
-    openLog->print(F(", Runtime: "));
+    openLog->print(F(", "));
     openLog->print(getRuntime());
     openLog->print(F(", "));
     tempSensor.print(openLog, true);
@@ -130,7 +145,9 @@ void loop()
     vsBatt.print(openLog, true);
     vsLemons.print(openLog, true);
     geiger.print(openLog);
-    */
+    openLog->println();
+
+    
     previousMillis = currentMillis;
   }
  }

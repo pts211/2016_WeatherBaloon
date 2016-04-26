@@ -41,6 +41,7 @@ public:
   float getTemp()
   {
     m_temp = dht->readTemperature();
+    m_temp = (m_temp * 9.0) / 5.0 + 32; //Farenheit
     return isnan(m_temp) ? 0 : m_temp;
   }
   
@@ -55,9 +56,9 @@ public:
   
   void printColHeadings(HardwareSerial * s, const bool includeDelimiter = false)
   {
-    s->print(F("Temp( "));
+    s->print(F("Temp("));
     s->print(m_id);
-    s->print(F(") (C), Humidity (%)"));
+    s->print(F(") (F), Humidity (%)"));
     if(includeDelimiter){
       s->print(F(", "));
     }
@@ -76,7 +77,7 @@ public:
   void printWithLabels(HardwareSerial * s, const bool includeDelimiter = false)
   {
     s->print(getTemp());
-    s->print(F(" *C, "));
+    s->print(F(" *F, "));
     s->print(getHumidity());
     s->print(F(" %"));
     if(includeDelimiter){
